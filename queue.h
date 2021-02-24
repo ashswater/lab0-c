@@ -25,6 +25,8 @@ typedef struct ELE {
 /* Queue structure */
 typedef struct {
     list_ele_t *head; /* Linked list of elements */
+    list_ele_t *tail;
+    int size;
     /* TODO: You will need to add more fields to this structure
      *        to efficiently implement q_size and q_insert_tail.
      */
@@ -94,5 +96,8 @@ void q_reverse(queue_t *q);
  * element, do nothing.
  */
 void q_sort(queue_t *q);
+void add_ele(list_ele_t **head, list_ele_t *node);
+void concat_ele(list_ele_t **head, list_ele_t *node);
+void ele_q_sort(list_ele_t **head);
 
 #endif /* LAB0_QUEUE_H */
