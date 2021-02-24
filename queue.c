@@ -61,6 +61,7 @@ bool q_insert_head(queue_t *q, char *s)
         return false;
     }
     strncpy(newh->value, s, strlen(s));
+    newh->value[strlen(s)] = '\0';
 
     newh->next = q->head;
     q->head = newh;
@@ -94,6 +95,8 @@ bool q_insert_tail(queue_t *q, char *s)
     }
 
     strncpy(newt->value, s, strlen(s));
+    newt->value[strlen(s)] = '\0';
+
 
     if (q->tail) {
         q->tail->next = newt;
@@ -124,7 +127,10 @@ bool q_remove_head(queue_t *q, char *sp, size_t bufsize)
     if (!q->head)
         return false;
     // sp = malloc((strlen(q->head->value)+1)*sizeof(char));
-    strncpy(sp, q->head->value, bufsize - 1);
+    if (sp) {
+        strncpy(sp, q->head->value, bufsize - 1);
+        sp[bufsize - 1] = '\0';
+    }
 
     list_ele_t *tmp = q->head;
     q->head = q->head->next;
@@ -188,17 +194,24 @@ void q_sort(queue_t *q)
         return;
     if (!q->head)
         return;
-    ele_q_sort(&(q->head));
+    q->tail = ele_q_sort(&(q->head));
+
+    // q->tail = q->head;
+    // while(q->tail->next){
+    //    q->tail = q->tail->next;
+    //}
 }
 
-void ele_q_sort(list_ele_t **head)
+list_ele_t *ele_q_sort(list_ele_t **head)
 {
-    if (!head)
-        return;
+    // if (!head)
+    //    return NULL;
     if (!(*head))
-        return;
+        return NULL;
 
     list_ele_t *ptr = (*head)->next, *tmp;
+    list_ele_t *pivot = (*head);
+    pivot->next = NULL;
     list_ele_t *left = NULL, *right = NULL;
     while (ptr) {
         tmp = ptr->next;
@@ -206,11 +219,19 @@ void ele_q_sort(list_ele_t **head)
         ptr = tmp;
     }
     ele_q_sort(&left);
-    ele_q_sort(&right);
-    tmp = *head;
-    *head = left;
-    concat_ele(head, tmp);
-    tmp->next = right;
+
+    list_ele_t *tail;
+    tail = ele_q_sort(&right);
+
+    list_ele_t *result = NULL;
+    concat_ele(&result, left);
+    concat_ele(&result, pivot);
+    concat_ele(&result, right);
+    *head = result;
+    //    head = left;
+    //    concat_ele(head, pivot);
+    //    tmp->next = right;
+    return (tail) ? tail : pivot;
 }
 
 void add_ele(list_ele_t **head, list_ele_t *node)
@@ -221,11 +242,8 @@ void add_ele(list_ele_t **head, list_ele_t *node)
 
 void concat_ele(list_ele_t **head, list_ele_t *node)
 {
-    if (!node)
-        return;
-    list_ele_t **ptr = head;
-    while (*ptr) {
-        ptr = &((*ptr)->next);
+    while (*head) {
+        head = &((*head)->next);
     }
-    *ptr = node;
+    *head = node;
 }

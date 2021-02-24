@@ -98,6 +98,6 @@ void q_reverse(queue_t *q);
 void q_sort(queue_t *q);
 void add_ele(list_ele_t **head, list_ele_t *node);
 void concat_ele(list_ele_t **head, list_ele_t *node);
-void ele_q_sort(list_ele_t **head);
+list_ele_t *ele_q_sort(list_ele_t **head);
 
 #endif /* LAB0_QUEUE_H */
