@@ -62,8 +62,8 @@ bool q_insert_head(queue_t *q, char *s)
     }
     strncpy(newh->value, s, strlen(s));
     newh->value[strlen(s)] = '\0';
-
     newh->next = q->head;
+
     q->head = newh;
     if (!q->tail)
         q->tail = newh;
@@ -96,6 +96,7 @@ bool q_insert_tail(queue_t *q, char *s)
 
     strncpy(newt->value, s, strlen(s));
     newt->value[strlen(s)] = '\0';
+    newt->next = NULL;
 
 
     if (q->tail) {
@@ -105,7 +106,7 @@ bool q_insert_tail(queue_t *q, char *s)
         q->head = newt;
         q->tail = newt;
     }
-    newt->next = NULL;
+
     ++(q->size);
     return true;
 }
@@ -134,6 +135,8 @@ bool q_remove_head(queue_t *q, char *sp, size_t bufsize)
 
     list_ele_t *tmp = q->head;
     q->head = q->head->next;
+    if (!q->head)
+        q->tail = NULL;
 
     free(tmp->value);
     free(tmp);
@@ -150,6 +153,8 @@ int q_size(queue_t *q)
     /* TODO: You need to write the code for this function */
     /* Remember: It should operate in O(1) time */
     /* TODO: Remove the above comment when you are about to implement. */
+    if (!q)
+        return 0;
     return q->size;
 }
 
@@ -169,7 +174,8 @@ void q_reverse(queue_t *q)
     if (!q->head)
         return;
     list_ele_t *prev = NULL, *ptr = q->head, *nxt = q->head->next;
-    q->tail = q->head;
+    q->head = q->tail;
+    q->tail = ptr;
     while (ptr) {
         // ptr->next = prev;
         ptr->next = prev;
@@ -178,7 +184,6 @@ void q_reverse(queue_t *q)
         if (nxt)
             nxt = nxt->next;
     }
-    q->head = prev;
 }
 
 /*
@@ -194,12 +199,14 @@ void q_sort(queue_t *q)
         return;
     if (!q->head)
         return;
+    if (q->head == q->tail)
+        return;
     q->tail = ele_q_sort(&(q->head));
 
-    // q->tail = q->head;
-    // while(q->tail->next){
-    //    q->tail = q->tail->next;
-    //}
+    /*q->tail = q->head;
+    while(q->tail->next){
+       q->tail = q->tail->next;
+    }*/
 }
 
 list_ele_t *ele_q_sort(list_ele_t **head)
@@ -209,29 +216,35 @@ list_ele_t *ele_q_sort(list_ele_t **head)
     if (!(*head))
         return NULL;
 
-    list_ele_t *ptr = (*head)->next, *tmp;
-    list_ele_t *pivot = (*head);
+    list_ele_t *pivot = *head;
+    list_ele_t *ptr = pivot->next, *tmp = NULL;
+    // printf("pivot %s\n", pivot->value);
+    if (!ptr)
+        return pivot;
     pivot->next = NULL;
     list_ele_t *left = NULL, *right = NULL;
     while (ptr) {
-        tmp = ptr->next;
-        add_ele((strcmp(ptr->value, (*head)->value) < 0) ? &left : &right, ptr);
-        ptr = tmp;
+        tmp = ptr;
+        ptr = ptr->next;
+        add_ele((strcmp(tmp->value, pivot->value) < 0) ? &left : &right, tmp);
     }
-    ele_q_sort(&left);
+    if (left)
+        ele_q_sort(&left);
 
-    list_ele_t *tail;
-    tail = ele_q_sort(&right);
+    list_ele_t *tail = NULL;
+    if (right)
+        tail = ele_q_sort(&right);
 
-    list_ele_t *result = NULL;
-    concat_ele(&result, left);
+    list_ele_t *result = left;
+    // concat_ele(&result, left);
     concat_ele(&result, pivot);
-    concat_ele(&result, right);
+    // concat_ele(&result, right);
+    pivot->next = right;
     *head = result;
     //    head = left;
     //    concat_ele(head, pivot);
     //    tmp->next = right;
-    return (tail) ? tail : pivot;
+    return (right) ? tail : pivot;
 }
 
 void add_ele(list_ele_t **head, list_ele_t *node)
@@ -242,6 +255,8 @@ void add_ele(list_ele_t **head, list_ele_t *node)
 
 void concat_ele(list_ele_t **head, list_ele_t *node)
 {
+    if (!node)
+        return;
     while (*head) {
         head = &((*head)->next);
     }
