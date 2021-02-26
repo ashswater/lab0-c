@@ -201,12 +201,14 @@ void q_sort(queue_t *q)
         return;
     if (q->head == q->tail)
         return;
-    q->tail = ele_q_sort(&(q->head));
+    // q->tail = ele_q_sort(&(q->head));
+    // q->tail = ele_merge_sort(&(q->head));
+    ele_merge_sort(&(q->head));
 
-    /*q->tail = q->head;
-    while(q->tail->next){
-       q->tail = q->tail->next;
-    }*/
+    q->tail = q->head;
+    while (q->tail->next) {
+        q->tail = q->tail->next;
+    }
 }
 
 list_ele_t *ele_q_sort(list_ele_t **head)
@@ -235,16 +237,100 @@ list_ele_t *ele_q_sort(list_ele_t **head)
     if (right)
         tail = ele_q_sort(&right);
 
-    list_ele_t *result = left;
-    // concat_ele(&result, left);
+    list_ele_t *result = NULL;
+    // list_ele_t *result = left;
+    concat_ele(&result, left);
     concat_ele(&result, pivot);
-    // concat_ele(&result, right);
-    pivot->next = right;
+    concat_ele(&result, right);
+    // pivot->next = right;
+
     *head = result;
     //    head = left;
     //    concat_ele(head, pivot);
     //    tmp->next = right;
     return (right) ? tail : pivot;
+}
+
+list_ele_t *ele_merge_sort(list_ele_t **head)
+{
+    if (!*head)
+        return NULL;
+    if (!(*head)->next)
+        return *head;
+
+    list_ele_t *left, *right;
+    ele_split(*head, &left, &right);
+    ele_merge_sort(&left);
+    list_ele_t *tail = NULL;
+    tail = ele_merge_sort(&right);
+
+    *head = ele_sorted_merge(left, right);
+    return tail;
+}
+
+list_ele_t *ele_sorted_merge(list_ele_t *a, list_ele_t *b)
+{
+    list_ele_t *result = NULL, *tmp, *tail = NULL;
+    if (strcmp(a->value, b->value) < 0) {
+        // printf("%s\n", a->value);
+        result = tail = a;
+        a = a->next;
+        tail->next = NULL;
+        if (!a) {
+            tail->next = b;
+            return result;
+        }
+    } else {
+        // printf("%s\n", b->value);
+        result = tail = b;
+        b = b->next;
+        tail->next = NULL;
+        if (!b) {
+            tail->next = a;
+            return result;
+        }
+    }
+
+    while (1) {
+        if (strcmp(a->value, b->value) < 0) {  // a<b
+            tmp = a;
+            a = a->next;
+            tail->next = tmp;
+            tail = tmp;
+            tail->next = NULL;
+
+            if (!a) {
+                tail->next = b;
+                break;
+            }
+        } else {
+            tmp = b;
+            b = b->next;
+            tail->next = tmp;
+            tail = tmp;
+            tail->next = NULL;
+            if (!b) {
+                tail->next = a;
+                break;
+            }
+        }
+    }
+    return result;
+}
+
+void ele_split(list_ele_t *head, list_ele_t **a, list_ele_t **b)
+{
+    list_ele_t *ap = head->next, *bp = head;
+    while (ap) {
+        ap = ap->next;
+        if (ap) {  // false if even
+            ap = ap->next;
+            bp = bp->next;
+        }
+    }
+    *a = head;
+    *b = bp->next;
+    bp->next = NULL;
 }
 
 void add_ele(list_ele_t **head, list_ele_t *node)
